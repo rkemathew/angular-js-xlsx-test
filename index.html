@@ -78,7 +78,8 @@
                 readXlsx(file).then(function(workbook) {
                     console.log('workbook', workbook);
                     // RM: All processing of the workbook happens here...
-                    var employeeDataSheetName = 'Employee Data Requirements';
+                    var eeDataSheetName = 'Employee Data Requirements';
+                    var worksheet = workbook.Sheets[eeDataSheetName];
 
                     var countryCellAddr = 'B8';
                     var currencyCellAddr = 'C8';
@@ -89,7 +90,6 @@
                     var eeGradeCellAddr = 'H8';
                     var eeIdCellAddr = 'I8';
 
-                    var worksheet = workbook.Sheets[employeeDataSheetName];
                     var country = (worksheet[countryCellAddr] ? worksheet[countryCellAddr].v : undefined);
                     var currency = (worksheet[currencyCellAddr] ? worksheet[currencyCellAddr].v : undefined);
                     var revenue = (worksheet[revenueCellAddr] ? worksheet[revenueCellAddr].v : undefined);
@@ -107,6 +107,10 @@
                     console.log('eeJobTitle', eeJobTitle);
                     console.log('eeGrade', eeGrade);
                     console.log('eeId', eeId);
+
+                    //Use Sheet to JSON to get a JSON representation of the worksheet
+                     var eeDataSheetJSON = XLSX.utils.sheet_to_json(worksheet, { range: "A" });
+                     console.log('eeDataSheetJSON', eeDataSheetJSON);
                 });
             }
 
