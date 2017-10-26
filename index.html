@@ -50,40 +50,6 @@
 
         var app = angular.module('app', [ 'angularFileUpload' ]);
         
-        app.controller('MainCtrl', ['$scope', 'FileUploader', function ($scope, FileUploader) {
-            var uploader = $scope.uploader = new FileUploader({});
-            uploader.onAfterAddingFile = function(fileItem) {
-                readXlsx(fileItem._file);
-            };
-
-            $scope.$on('file:uploaded', function(event, file) {
-                readXlsx(file);
-            });
-
-            function readXlsx(file) {
-                var reader = new FileReader();
-                
-                reader.onload = function (e) {
-                    /* read workbook */
-                    console.log('reader', reader);
-                    // var bstr = e.target.result;
-                    var bstr = null;
-                    if (isIE) {
-                        bstr = reader.content;
-                    } else {
-                        bstr = reader.result;
-                    }
-
-                    var workbook = XLSX.read(bstr, {type:'binary'});
-                    console.log('workbook', workbook);
-
-                    /* DO SOMETHING WITH workbook HERE */
-                };
-
-                reader.readAsBinaryString(file);
-            }
-        }]);
-
         app.directive('importSheetJs', function() {
             return {
                 scope: { },
@@ -94,6 +60,44 @@
                 }
             };
         });
+
+        app.controller('MainCtrl', ['$scope', '$q', 'FileUploader', function ($scope, $q, FileUploader) {
+            var uploader = $scope.uploader = new FileUploader({});
+            uploader.onAfterAddingFile = function(fileItem) {
+                processXlsx(fileItem._file);
+            };
+
+            $scope.$on('file:uploaded', function(event, file) {
+                processXlsx(file);
+            });
+
+            function processXlsx(file) {
+                readXlsx(file).then(function(workbook) {
+                    console.log('workbook', workbook);
+                });
+            }
+
+            function readXlsx(file) {
+                var def = $q.defer();
+                var reader = new FileReader();
+                
+                reader.onload = function (e) {
+                    var bstr = null;
+                    if (isIE) {
+                        bstr = reader.content;
+                    } else {
+                        bstr = reader.result;
+                    }
+
+                    var workbook = XLSX.read(bstr, {type:'binary'});
+                    def.resolve(workbook);
+                };
+
+                reader.readAsBinaryString(file);
+
+                return def.promise;
+            }
+        }]);
     </script>
 </body>
 
