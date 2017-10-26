@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Angular Js XLS</title>
+</head>
+
+<body ng-app="app">
+    <div ng-controller="MainCtrl" style="margin: 30px;">
+        <!-- <input type="file" id="upload" name="upload" import-sheet-js="" /> -->
+        <input type="file" id="upload" name="upload" style="visibility: hidden; width: 1px; height: 1px" import-sheet-js="" />
+        <a href="" onclick="document.getElementById('upload').click(); return false">Upload</a>
+
+        <div style="border: dotted 3px lightgray; width: 100px; height: 100px; margin-top: 30px" nv-file-drop="" uploader="uploader">
+            Drop Files Here
+        </div>
+    </div>
+
+    <script type="text/javascript" src="../bower_components/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="../bower_components/angular/angular.min.js"></script>
+    <script type="text/javascript" src="../bower_components/js-xlsx/dist/xlsx.full.min.js"></script>
+    <script type="text/javascript" src="../bower_components/angular-file-upload/dist/angular-file-upload.min.js"></script>
+    <script type="text/javascript">
+        /* FileReader Shim for readAsBinaryString Begins */
+        if (FileReader.prototype.readAsBinaryString === undefined) {
+            FileReader.prototype.readAsBinaryString = function (fileData) {
+                var binary = "";
+                var pt = this;
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var bytes = new Uint8Array(reader.result);
+                    var length = bytes.byteLength;
+                    for (var i = 0; i < length; i++) {
+                        binary += String.fromCharCode(bytes[i]);
+                    }
+                    //pt.result  - readonly so assign content to another property
+                    pt.content = binary;
+                    pt.onload(); // thanks to @Denis comment
+                }
+                reader.readAsArrayBuffer(fileData);
+            }
+        }
+        /* FileReader Shim for readAsBinaryString Ends */
+
+        var isIE = false;
+        if (navigator.appName == 'Microsoft Internet Explorer' ||  !!(navigator.userAgent.match(/Trident/) || navigator.userAgent.match(/rv:11/)) || (typeof $.browser !== "undefined" && $.browser.msie == 1)) {
+            isIE = true;
+        }
+
+        var app = angular.module('app', [ 'angularFileUpload' ]);
+        
+        app.controller('MainCtrl', ['$scope', 'FileUploader', function ($scope, FileUploader) {
+            var uploader = $scope.uploader = new FileUploader({});
+            uploader.onAfterAddingFile = function(fileItem) {
+                readXlsx(fileItem._file);
+            };
+
+            $scope.$on('file:uploaded', function(event, file) {
+                readXlsx(file);
+            });
+
+            function readXlsx(file) {
+                var reader = new FileReader();
+                
+                reader.onload = function (e) {
+                    /* read workbook */
+                    console.log('reader', reader);
+                    // var bstr = e.target.result;
+                    var bstr = null;
+                    if (isIE) {
+                        bstr = reader.content;
+                    } else {
+                        bstr = reader.result;
+                    }
+
+                    var workbook = XLSX.read(bstr, {type:'binary'});
+                    console.log('workbook', workbook);
+
+                    /* DO SOMETHING WITH workbook HERE */
+                };
+
+                reader.readAsBinaryString(file);
+            }
+        }]);
+
+        app.directive('importSheetJs', function() {
+            return {
+                scope: { },
+                link: function ($scope, $elm, $attrs) {
+                    $elm.on('change', function (changeEvent) {
+                        $scope.$emit('file:uploaded', changeEvent.target.files[0])
+                    });
+                }
+            };
+        });
+    </script>
+</body>
+
+</html>
