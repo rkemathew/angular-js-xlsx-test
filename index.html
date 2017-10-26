@@ -22,7 +22,7 @@
     <script type="text/javascript" src="../bower_components/js-xlsx/dist/xlsx.full.min.js"></script>
     <script type="text/javascript" src="../bower_components/angular-file-upload/dist/angular-file-upload.min.js"></script>
     <script type="text/javascript">
-        /* FileReader Shim for readAsBinaryString Begins */
+        /* RM: FileReader Shim for readAsBinaryString neededor IE Begins */
         if (FileReader.prototype.readAsBinaryString === undefined) {
             FileReader.prototype.readAsBinaryString = function (fileData) {
                 var binary = "";
@@ -41,13 +41,15 @@
                 reader.readAsArrayBuffer(fileData);
             }
         }
-        /* FileReader Shim for readAsBinaryString Ends */
+        /* RM: FileReader Shim for readAsBinaryString needed for IE Ends */
 
+        /* RM: Determining if browser is IE */
         var isIE = false;
         if (navigator.appName == 'Microsoft Internet Explorer' ||  !!(navigator.userAgent.match(/Trident/) || navigator.userAgent.match(/rv:11/)) || (typeof $.browser !== "undefined" && $.browser.msie == 1)) {
             isIE = true;
         }
 
+        /* RM: Angular Code starts here */
         var app = angular.module('app', [ 'angularFileUpload' ]);
         
         app.directive('importSheetJs', function() {
@@ -71,19 +73,51 @@
                 processXlsx(file);
             });
 
+            /* RM: the following two functions are not specific to Angular and so could be used within node as well */
             function processXlsx(file) {
                 readXlsx(file).then(function(workbook) {
                     console.log('workbook', workbook);
+                    // RM: All processing of the workbook happens here...
+                    var employeeDataSheetName = 'Employee Data Requirements';
+
+                    var countryCellAddr = 'B8';
+                    var currencyCellAddr = 'C8';
+                    var revenueCellAddr = 'D8';
+                    var industrySectorCellAddr = 'E8';
+                    var numEesCellAddr = 'F8';
+                    var eeJobTitleCellAddr = 'G8';
+                    var eeGradeCellAddr = 'H8';
+                    var eeIdCellAddr = 'I8';
+
+                    var worksheet = workbook.Sheets[employeeDataSheetName];
+                    var country = (worksheet[countryCellAddr] ? worksheet[countryCellAddr].v : undefined);
+                    var currency = (worksheet[currencyCellAddr] ? worksheet[currencyCellAddr].v : undefined);
+                    var revenue = (worksheet[revenueCellAddr] ? worksheet[revenueCellAddr].v : undefined);
+                    var industrySector = (worksheet[industrySectorCellAddr] ? worksheet[industrySectorCellAddr].v : undefined);
+                    var numEes = (worksheet[numEesCellAddr] ? worksheet[numEesCellAddr].v : undefined);
+                    var eeJobTitle = (worksheet[eeJobTitleCellAddr] ? worksheet[eeJobTitleCellAddr].v : undefined);
+                    var eeGrade = (worksheet[eeGradeCellAddr] ? worksheet[eeGradeCellAddr].v : undefined);
+                    var eeId = (worksheet[eeIdCellAddr] ? worksheet[eeIdCellAddr].v : undefined);
+
+                    console.log('country', country);
+                    console.log('currency', currency);
+                    console.log('revenue', revenue);
+                    console.log('industrySector', industrySector);
+                    console.log('numEes', numEes);
+                    console.log('eeJobTitle', eeJobTitle);
+                    console.log('eeGrade', eeGrade);
+                    console.log('eeId', eeId);
                 });
             }
 
             function readXlsx(file) {
+                // RM: You could replace the promise returned by $q with native promises if using this in node
                 var def = $q.defer();
                 var reader = new FileReader();
                 
                 reader.onload = function (e) {
                     var bstr = null;
-                    if (isIE) {
+                    if (isIE) { // RM: This check is not needed if using this in node
                         bstr = reader.content;
                     } else {
                         bstr = reader.result;
@@ -98,6 +132,7 @@
                 return def.promise;
             }
         }]);
+        /* RM: Angular code ends here */
     </script>
 </body>
 
