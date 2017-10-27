@@ -15,7 +15,15 @@
         <div style="border: dotted 3px lightgray; width: 100px; height: 100px; margin-top: 30px" nv-file-drop="" uploader="uploader">
             Drop Files Here
         </div>
+
+        <table>
+            <tr ng-repeat="x in errors">
+              <td>{{ x }}</td>
+            </tr>
+          </table>
     </div>
+
+    <div ng-app="app", error-directive></div>
 
     <script type="text/javascript" src="../bower_components/jquery/dist/jquery.min.js"></script>
     <script type="text/javascript" src="../bower_components/angular/angular.min.js"></script>
@@ -23,6 +31,7 @@
     <script type="text/javascript" src="../bower_components/angular-file-upload/dist/angular-file-upload.min.js"></script>
     <script type="text/javascript">
         /* RM: FileReader Shim for readAsBinaryString neededor IE Begins */
+        // Appears to be taken from https://stackoverflow.com/questions/31391207/javascript-readasbinarystring-function-on-e11/35170914
         if (FileReader.prototype.readAsBinaryString === undefined) {
             FileReader.prototype.readAsBinaryString = function (fileData) {
                 var binary = "";
@@ -63,7 +72,40 @@
             };
         });
 
-        app.controller('MainCtrl', ['$scope', '$q', 'FileUploader', function ($scope, $q, FileUploader) {
+        app.controller('MainCtrl', ['$scope', '$q', 'FileUploader', '$http', function ($scope, $q, FileUploader, $http) {
+            // Get column names to check for
+            $http.get('/column_names.json').success(function (data) {
+                $scope.columnNames = data.column_names;
+                console.log('Column Names', $scope.columnNames);
+            }).error(function (data) {
+                console.log('Error getting column_names.json');
+            });
+            
+            // Get mapping information for validation
+            $http.get('/mapping.json').success(function (data) {
+                $scope.mapping = data;
+                console.log('Mapping Get', $scope.mapping);
+            }).error(function (data) {
+                console.log('Error getting mapping.json');
+                return;
+            });
+
+            // Get column name to mapping field information
+            $http.get('/column_to_mapping.json').success(function (data) {
+                $scope.column_to_mapping = data;
+                console.log('Column To Mapping', $scope.column_to_mapping);
+            }).error(function (data) {
+                console.log('Error getting column_to_mapping.json');
+                return;
+            });
+
+            // Get error checking information
+            $http.get("/error_check_info.json").success(function (data) {
+                $scope.error_check_info = data;
+            }).error(function (data) {
+                console.log("Error getting error_check_info.json");
+            })
+            
             var uploader = $scope.uploader = new FileUploader({});
             uploader.onAfterAddingFile = function(fileItem) {
                 processXlsx(fileItem._file);
@@ -75,43 +117,178 @@
 
             /* RM: the following two functions are not specific to Angular and so could be used within node as well */
             function processXlsx(file) {
+                console.log(file);
                 readXlsx(file).then(function(workbook) {
                     console.log('workbook', workbook);
+
+                    // Error checking for salary reviewed date
+                    var generalInformationSheetName = 'General Information';
+
+                    if (workbook.Sheets[generalInformationSheetName] == null) {
+                        console.log('No sheet named General Information');
+                        return;
+                    }
+                    
+                    var generalInfoSheet = workbook.Sheets[generalInformationSheetName];
+                    var salaryReviewDateCellId = 'E13'; // Cell location in template
+                    var salaryReviewDate = (generalInfoSheet[salaryReviewDateCellId] ? generalInfoSheet[salaryReviewDateCellId].v : undefined);
+                    if (salaryReviewDate == undefined) {
+                        console.log('No salary reviewed date provided.');
+                        $scope.errors = ['No salary reviewed date provided.'];
+                        return;
+                    }
+
+
                     // RM: All processing of the workbook happens here...
                     var eeDataSheetName = 'Employee Data Requirements';
+
+                    if (workbook.Sheets[eeDataSheetName] == null) {
+                        console.log('No sheet named Employee Data Requirements');
+                        $scope.errors = ['No sheet named Employee Data Requirements.'];
+                        return;
+                    }
+
                     var worksheet = workbook.Sheets[eeDataSheetName];
 
-                    var countryCellAddr = 'B8';
-                    var currencyCellAddr = 'C8';
-                    var revenueCellAddr = 'D8';
-                    var industrySectorCellAddr = 'E8';
-                    var numEesCellAddr = 'F8';
-                    var eeJobTitleCellAddr = 'G8';
-                    var eeGradeCellAddr = 'H8';
-                    var eeIdCellAddr = 'I8';
+                    console.log('worksheet', worksheet);
 
-                    var country = (worksheet[countryCellAddr] ? worksheet[countryCellAddr].v : undefined);
-                    var currency = (worksheet[currencyCellAddr] ? worksheet[currencyCellAddr].v : undefined);
-                    var revenue = (worksheet[revenueCellAddr] ? worksheet[revenueCellAddr].v : undefined);
-                    var industrySector = (worksheet[industrySectorCellAddr] ? worksheet[industrySectorCellAddr].v : undefined);
-                    var numEes = (worksheet[numEesCellAddr] ? worksheet[numEesCellAddr].v : undefined);
-                    var eeJobTitle = (worksheet[eeJobTitleCellAddr] ? worksheet[eeJobTitleCellAddr].v : undefined);
-                    var eeGrade = (worksheet[eeGradeCellAddr] ? worksheet[eeGradeCellAddr].v : undefined);
-                    var eeId = (worksheet[eeIdCellAddr] ? worksheet[eeIdCellAddr].v : undefined);
-
-                    console.log('country', country);
-                    console.log('currency', currency);
-                    console.log('revenue', revenue);
-                    console.log('industrySector', industrySector);
-                    console.log('numEes', numEes);
-                    console.log('eeJobTitle', eeJobTitle);
-                    console.log('eeGrade', eeGrade);
-                    console.log('eeId', eeId);
-
-                    //Use Sheet to JSON to get a JSON representation of the worksheet
-                     var eeDataSheetJSON = XLSX.utils.sheet_to_json(worksheet, { range: "A" });
-                     console.log('eeDataSheetJSON', eeDataSheetJSON);
+                    checkColumns(file, worksheet);
                 });
+            }
+
+            function checkColumns(file, worksheet) {
+                // Make sure mapping is fresh
+                var key;
+                for (key in $scope.mapping) {
+                    $scope.mapping[key] = "";
+                }
+
+                // TODO: Collect header row from user
+                $scope.mapping.header_row = 7; // our template has headers on row 7
+
+                $scope.mapping.filename = file.name;
+
+                // Maintains columns that were not mapped to database field
+                var unknownColumns = [];
+
+                // Get worksheet range
+                var range = XLSX.utils.decode_range(worksheet['!ref']);
+
+                // Iterate through each column of header row
+                for (var i = 1; i <= range.e.c; i++) {
+                    // Get column name (A, B, .. CA, CB, etc.)
+                    var columnName = toColumnName(i);
+                    var cellId = columnName + $scope.mapping.header_row;
+                    var columnValue = (worksheet[cellId] ? worksheet[cellId].v : undefined);
+
+                    // Check if column is a mappable or unknown column
+                    var index = $scope.columnNames.indexOf(columnValue);
+                    if (index != -1) {
+                        $scope.mapping[$scope.column_to_mapping[columnValue]] = columnName;
+                    } else {
+                        console.log('Unknown column name: ' + columnValue);
+                        unknownColumns.push(columnValue);
+                    }
+                }
+
+                console.log('Mapping', $scope.mapping);
+
+                // Determine what keys are not entered in the mapping
+                var missingKeys = [];
+
+                for (key in $scope.mapping) {
+                    if ($scope.mapping[key] == "") {
+                        missingKeys.push(key);
+                    }
+                }
+
+                // Check if mapping was successful
+                if (missingKeys.length > 0) {
+                    console.log('Unable to map all columns, user must provide mapping.');
+
+                    console.log('Missing Keys', missingKeys);
+                    console.log('Unknown Columns', unknownColumns);
+
+                    var errors = ['Could not map your columns to the following fields'];
+                    errors.push(missingKeys);
+
+                    $scope.errors = errors
+                    // TODO: Notify user of necessary mappings
+                    // Use unknownColumns to show/select mappings
+                } else {
+                    console.log('Mapping completed!');
+
+                    errorCheck(file, worksheet)
+                }
+            }
+
+            function errorCheck(file, worksheet) {
+                var errors = [];
+
+                // Get range of rows
+                var range = XLSX.utils.decode_range(worksheet['!ref']);
+
+                // Headcount check
+                var totalEntries = range.e.r - $scope.mapping.header_row;
+                var expectedHeadcount = ($scope.error_check_info.headcount * 0.8)
+                if (totalEntries < expectedHeadcount) {
+                    var errorString = 'Headcount error. ' + totalEntries + ' is less than the expected headcount of at least ' + expectedHeadcount
+                    console.log(errorString);
+                    errors.push(errorString);
+                }
+
+                // Update minimum requirements with error_check_info for more necessary rows
+                var minimumRequirements = $scope.error_check_info.minimum_requirements;
+
+                if ($scope.error_check_info.LTI_plan == true) {
+                    console.log('LTI Plan has been added to minimum requirements.');
+                    minimumRequirements.push("LTI_plan");
+                }
+
+                if ($scope.error_check_info.STI_plan == true) {
+                    console.log('STI Plan has been added to minimum requirements.');
+                    minimumRequirements.push("STI_plan");
+                }
+
+                if ($scope.error_check_info.STI_plan_payout == true) {
+                    console.log('STI Plan Payout has been added to minimum requirements.');
+                    minimumRequirements.push("STI_plan_payout");
+                }
+
+                if ($scope.error_check_info.employee_grade_band == true) {
+                    minimumRequirements.push("employee_grade_band");
+                }
+
+                console.log('Minimum Requirements', minimumRequirements);
+
+                console.log('Checking minimum data requirements.');
+    
+                // Iterate through rows and check against minimum requirements
+                for (var i = $scope.mapping.header_row + 1; i <= range.e.r; i++) {
+                    // Loop through minimum requirements on each row and ensure data is present and valid
+                    for (var j = 0; j < minimumRequirements.length; j++) {
+                        console.log(minimumRequirements[j]);
+                        var cellId = $scope.mapping[minimumRequirements[j]] + '' + i;
+                        console.log(cellId);
+                        console.log(worksheet[cellId]);
+                        if ((worksheet[cellId] ? worksheet[cellId].v : undefined) == null) {
+                            console.log(cellId + ' is empty for ' + minimumRequirements[j] + '.');
+                            errors.push(cellId + ' is empty for ' + minimumRequirements[j] + '.');
+                        }
+                    }
+                }
+
+                if (errors.length > 0) {
+                    console.log('Data errors found.');
+                    console.log('Errors', errors);
+                    $scope.errors = errors;
+                } else {
+                    console.log('No data errors!');
+
+                    $scope.errors = ['No data errors! Mapping and validation successful.'];
+
+                    //TODO: Job analyzing steps
+                }
             }
 
             function readXlsx(file) {
@@ -134,6 +311,14 @@
                 reader.readAsBinaryString(file);
 
                 return def.promise;
+            }
+
+            // Using from http://cwestblog.com/2013/09/05/javascript-snippet-convert-number-to-column-name/
+            function toColumnName(num) {
+                for (var ret = '', a = 1, b = 26; (num -= a) >= 0; a = b, b *= 26) {
+                    ret = String.fromCharCode(parseInt((num % b) / a) + 65) + ret;
+                }
+                return ret;
             }
         }]);
         /* RM: Angular code ends here */
