@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Angular Js XLS</title>
+</head>
+
+<body ng-app="app">
+    <div ng-controller="MainCtrl" style="margin: 30px;">
+        <div class="errors" ng-if="error">{{ error.error }}</div>
+        <!-- <input type="file" id="upload" name="upload" import-sheet-js="" /> -->
+        <input type="file" id="upload" name="upload" style="visibility: hidden; width: 1px; height: 1px" import-sheet-js="" />
+        <a href="" onclick="document.getElementById('upload').click(); return false">Upload</a>
+
+        <div style="border: dotted 3px lightgray; width: 400px; height: 400px; margin-top: 30px" nv-file-drop="" uploader="uploader">
+            Drop Files Here
+        </div>
+    </div>
+
+    <script type="text/javascript" src="../bower_components/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="../bower_components/angular/angular.min.js"></script>
+    <script type="text/javascript" src="../bower_components/js-xlsx/dist/xlsx.full.min.js"></script>
+    <script type="text/javascript" src="../bower_components/angular-file-upload/dist/angular-file-upload.min.js"></script>
+    <script type="text/javascript" src="./app/ieShims.js"></script>   
+    <script type="text/javascript" src="./app/app.js"></script>
+    <script type="text/javascript" src="./app/xlsxProcessing.js"></script>   
+</body>
+
+</html>
