@@ -7,479 +7,479 @@ app.service('XlsxProcService', ['$q', function ($q) {
     // The following constant defines the number of cols in the file that should be matched to consider it to be the header row
     var PCT_COLS_TO_MATCH_FOR_HEADER = 10;
     // THe following constant defines the maximum characters from the left of the column name in the Xlsx file that must match the predefined column name to identify the column 
-    var MAX_COL_LEN_TO_MATCH_FOR_HEADER = 20;
+    var MAX_COL_LEN_TO_MATCH_FOR_HEADER = 40;
     // The default worksheet name that is assumed to contain the data to be parsed.
     var DEFAULT_WORKSHEET_NAME = 'Employee Data Requirements';
 
-    var dbColumnsMetaData = [
+    var DB_COLUMNS_METADATA = [
         {
             normalizedColumnName: 'COUNTRY',
-            actualColumnName: 'Country',
+            xlsxDisplayColumnName: 'Country',
             displayColumnName: 'Country',
-            datAttributeName: 'country',
-            type: 'number'	
+            dataAttributeName: 'country',
+            expectedType: 'number'	
         },
         {
             normalizedColumnName: 'CURRENCY',
-            actualColumnName: 'Currency ',
+            xlsxDisplayColumnName: 'Currency ',
             displayColumnName: 'Currency',
-            datAttributeName: 'currency',
-            type: 'number'
+            dataAttributeName: 'currency',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'COUNTRYTOTALREVENUETURNOVER',
-            actualColumnName: 'Country Total Revenue / Turnover',
+            xlsxDisplayColumnName: 'Country Total Revenue / Turnover',
             displayColumnName: 'Country Total Revenue / Turnover',
-            datAttributeName: 'countryTotalRevenueTurnOver',
-            type: 'number'
+            dataAttributeName: 'countryTotalRevenueTurnOver',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'UNITSINDUSTRYSECTOR',
-            actualColumnName: 'Unit\'s Industry Sector',
+            xlsxDisplayColumnName: 'Unit\'s Industry Sector',
             displayColumnName: 'Unit\'s Inustry Sector',
-            datAttributeName: 'unitsIndustrySector',
-            type: 'number'
+            dataAttributeName: 'unitsIndustrySector',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'UNITTOTALNUMBEROFEMPLOYEES',
-            actualColumnName: 'Unit Total Number of Employees',
+            xlsxDisplayColumnName: 'Unit Total Number of Employees',
             displayColumnName: 'Unit Total Number of Employees',
-            datAttributeName: 'unitTotalNumEmployees',
-            type: 'number'
+            dataAttributeName: 'unitTotalNumEmployees',
+            expectedType: 'number'
         },
         {
-            normalizedColumnName: 'EMPLOYEE JOBTITLE',
-            actualColumnName: 'Employee Job Title',
+            normalizedColumnName: 'EMPLOYEEJOBTITLE',
+            xlsxDisplayColumnName: 'Employee Job Title',
             displayColumnName: 'Employee Job Title',
-            datAttributeName: 'employeeJobTitle',
-            type: 'number'
+            dataAttributeName: 'employeeJobTitle',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'EMPLOYEEGRADEBAND',
-            actualColumnName: 'Employee Grade / Band',
+            xlsxDisplayColumnName: 'Employee Grade / Band',
             displayColumnName: 'Employee Grade / Band',
-            datAttributeName: 'employeeGradeBand',
-            type: 'number'
+            dataAttributeName: 'employeeGradeBand',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'EMPLOYEEIDDONOTUSEEMPLOYEESNAMEORSOCIALSECURITYNUMBERDUETOINTERNATIONALPRIVACYLAW',
-            actualColumnName: 'Employee ID                          (do not use employee\'s name or social security number due to international privacy law)',
+            xlsxDisplayColumnName: 'Employee ID                          (do not use employee\'s name or social security number due to international privacy law)',
             displayColumnName: 'Employee ID',
-            datAttributeName: 'employeeId',
-            type: 'number'
+            dataAttributeName: 'employeeId',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'MANAGEREMPLOYEEIDDONOTUSEMANAGERSNAMEORSOCIALSECURITYNUMBERDUETOINTERNATIONALPRIVACYLAW',
-            actualColumnName: 'Manager Employee ID                          (do not use manager\'s name or social security number due to international privacy law)',
+            xlsxDisplayColumnName: 'Manager Employee ID                          (do not use manager\'s name or social security number due to international privacy law)',
             displayColumnName: 'Manager Employee ID',
-            datAttributeName: 'managerEmployeeId',
-            type: 'number'
+            dataAttributeName: 'managerEmployeeId',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'REPORTINGLEVELFROMCEO',
-            actualColumnName: 'Reporting Level from CEO',
+            xlsxDisplayColumnName: 'Reporting Level from CEO',
             displayColumnName: 'Reporting Level from CEO',
-            datAttributeName: 'reportingLevelFromCeo',
-            type: 'number'
+            dataAttributeName: 'reportingLevelFromCeo',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'PERFORMANCERANKING',
-            actualColumnName: 'Performance Ranking',
+            xlsxDisplayColumnName: 'Performance Ranking',
             displayColumnName: 'Performance Ranking',
-            datAttributeName: 'performanceRanking',
-            type: 'number'
+            dataAttributeName: 'performanceRanking',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'GENDER',
-            actualColumnName: 'Gender',
+            xlsxDisplayColumnName: 'Gender',
             displayColumnName: 'Gender',
-            datAttributeName: 'gender',
-            type: 'number'
+            dataAttributeName: 'gender',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'CURRENTLEVELJOBSTARTDATE',
-            actualColumnName: 'Current Level/Job Start Date',
+            xlsxDisplayColumnName: 'Current Level/Job Start Date',
             displayColumnName: 'Current Level / Job Start Date',
-            datAttributeName: 'currentlevelJobStartDate',
-            type: 'number'
+            dataAttributeName: 'currentlevelJobStartDate',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'COMPANYHIREDATEDATESTARTEDWITHCOMPANYNOTSPECIFICTOROLE',
-            actualColumnName: 'Company Hire Date(Date started with company,not specific to role)',
+            xlsxDisplayColumnName: 'Company Hire Date(Date started with company,not specific to role)',
             displayColumnName: 'Company Hire Date',
-            datAttributeName: 'companyHireDate',
-            type: 'number'
+            dataAttributeName: 'companyHireDate',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'FULLTIMEPARTTIMESTATUS',
-            actualColumnName: 'Full-time/Part-time Status',
+            xlsxDisplayColumnName: 'Full-time/Part-time Status',
             displayColumnName: 'Full-time / Part-time Status',
-            datAttributeName: 'fullTimePartTimeStatus',
-            type: 'number'
+            dataAttributeName: 'fullTimePartTimeStatus',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'FTEPERCENTAGE',
-            actualColumnName: 'FTE percentage',
+            xlsxDisplayColumnName: 'FTE percentage',
             displayColumnName: 'FTE percentage',
-            datAttributeName: 'ftePercentage',
-            type: 'number'
+            dataAttributeName: 'ftePercentage',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'EMPLOYEEWORKLOCATIONZIPPOSTALCODE',
-            actualColumnName: 'Employee WorkLocation / Zip/Postal Code',
+            xlsxDisplayColumnName: 'Employee WorkLocation / Zip/Postal Code',
             displayColumnName: 'Employee WorkLocation',
-            datAttributeName: 'employeeWorkLocation',
-            type: 'number'
+            dataAttributeName: 'employeeWorkLocation',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'JOBFAMILYSUBFAMILYCODENOTREQUIREDIFREFJOBCODEISPROVIDEDINCOLUMNM',
-            actualColumnName: 'Job Family / Subfamily Code (not required if Ref. Job Code is provided in column M)',
+            xlsxDisplayColumnName: 'Job Family / Subfamily Code (not required if Ref. Job Code is provided in column M)',
             displayColumnName: 'Job Family / Subfamily Code',
-            datAttributeName: 'jobFamily',
-            type: 'number'
+            dataAttributeName: 'jobFamily',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'REFERENCELEVELNOTREQUIREDIFREFJOBCODEISPROVIDEDINCOLUMNM',
-            actualColumnName: 'Reference Level  (not required if Ref. Job Code is provided in Column M)',
+            xlsxDisplayColumnName: 'Reference Level  (not required if Ref. Job Code is provided in Column M)',
             displayColumnName: 'Reference Level',
-            datAttributeName: 'referenceLevel',
-            type: 'number'
+            dataAttributeName: 'referenceLevel',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'REFERENCEJOBCODE',
-            actualColumnName: 'Reference Job Code',
+            xlsxDisplayColumnName: 'Reference Job Code',
             displayColumnName: 'Reference Job Code',
-            datAttributeName: 'referenceJobCode',
-            type: 'number'
+            dataAttributeName: 'referenceJobCode',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'HAYGROUPTOTALPOINTS',
-            actualColumnName: 'Hay Group Total Points',
+            xlsxDisplayColumnName: 'Hay Group Total Points',
             displayColumnName: 'Hay Group Total Points',
-            datAttributeName: 'haygroupTotalPoints',
-            type: 'number'
+            dataAttributeName: 'haygroupTotalPoints',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'BASICPAYMENTS',
-            actualColumnName: 'Basic Payments',
+            xlsxDisplayColumnName: 'Basic Payments',
             displayColumnName: 'Basic Payments',
-            datAttributeName: 'basicPayments',
-            type: 'number'
+            dataAttributeName: 'basicPayments',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'FIXEDPAYMENTS',
-            actualColumnName: 'Fixed Payments',
+            xlsxDisplayColumnName: 'Fixed Payments',
             displayColumnName: 'Fixed Payments',
-            datAttributeName: 'fixedPayments',
-            type: 'number'
+            dataAttributeName: 'fixedPayments',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'SALARYSTRUCTUREMINIMUM',
-            actualColumnName: 'Salary Structure Minimum',
+            xlsxDisplayColumnName: 'Salary Structure Minimum',
             displayColumnName: 'Salary Structure Minimum',
-            datAttributeName: 'salaryStructureMinimum',
-            type: 'number'
+            dataAttributeName: 'salaryStructureMinimum',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'SALARYSTRUCTUREMIDPOINT',
-            actualColumnName: 'Salary Structure Midpoint',
+            xlsxDisplayColumnName: 'Salary Structure Midpoint',
             displayColumnName: 'Salary Structure Midpoint',
-            datAttributeName: 'salaryStructureMidpoint',
-            type: 'number'
+            dataAttributeName: 'salaryStructureMidpoint',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'SALARYSTRUCTUREMAXIMUM',
-            actualColumnName: 'Salary Structure Maximum',
+            xlsxDisplayColumnName: 'Salary Structure Maximum',
             displayColumnName: 'Salary Structure Maximum',
-            datAttributeName: 'salaryStructureMaximum',
-            type: 'number'
+            dataAttributeName: 'salaryStructureMaximum',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'TOTALANNUALSHIFTPREMIUMSPAID',
-            actualColumnName: 'Total Annual Shift Premiums Paid',
+            xlsxDisplayColumnName: 'Total Annual Shift Premiums Paid',
             displayColumnName: '',
-            datAttributeName: 'totalAnnualShiftPremiumsPaid',
-            type: 'number'
+            dataAttributeName: 'totalAnnualShiftPremiumsPaid',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'SHORTTERMVARIABLEPAYMENTELIGIBILITYYN',
-            actualColumnName: 'Short-term Variable Payment Eligibility (Y/N)',
+            xlsxDisplayColumnName: 'Short-term Variable Payment Eligibility (Y/N)',
             displayColumnName: 'Short-term Variable Payment Eligibility',
-            datAttributeName: 'shortTermVariablePaymentEligibility',
-            type: 'number'
+            dataAttributeName: 'shortTermVariablePaymentEligibility',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'ACTUALANNUALSHORTTERMVARIABLEPAYMENT',
-            actualColumnName: 'Actual Annual Short-term Variable Payment',
+            xlsxDisplayColumnName: 'Actual Annual Short-term Variable Payment',
             displayColumnName: 'Actual Annual Short-term Variable Payment',
-            datAttributeName: 'actualAnnualShortTermVariablePayment',
-            type: 'number'
+            dataAttributeName: 'actualAnnualShortTermVariablePayment',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'TARGETSHORTTERMVARIABLEPAYMENTOFBASESALARY',
-            actualColumnName: 'Target Short-term Variable Payment (% of Base Salary)',
+            xlsxDisplayColumnName: 'Target Short-term Variable Payment (% of Base Salary)',
             displayColumnName: 'Target Short-term Variable Payment',
-            datAttributeName: 'targetShortTermVariablePayment',
-            type: 'number'
+            dataAttributeName: 'targetShortTermVariablePayment',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'CARELIGIBILITYYN',
-            actualColumnName: 'CarEligibility (Y/N)',
+            xlsxDisplayColumnName: 'CarEligibility (Y/N)',
             displayColumnName: 'Car Eligibility',
-            datAttributeName: 'carEligibility',
-            type: 'number'
+            dataAttributeName: 'carEligibility',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'LONGTERMINCENTIVEELIGIBILITYYN',
-            actualColumnName: 'Long-term Incentive Eligibility (Y/N)',
+            xlsxDisplayColumnName: 'Long-term Incentive Eligibility (Y/N)',
             displayColumnName: 'Long-term Incentive Eligibility',
-            datAttributeName: 'longTermIncentiveEligibility',
-            type: 'number'
+            dataAttributeName: 'longTermIncentiveEligibility',
+            expectedType: 'number'
         },
         {
-            normalizedColumnName: 'TYPEOFLONGTERMINCENTIVESOSARRSPSPU',
-            actualColumnName: 'Type of Long-term Incentive (SO, SAR, RS, PS, PU)',
-            displayColumnName: 'Type of Long-term Incentive',
-            datAttributeName: 'typeOfLongTermIncentives1',
-            type: 'number'
+            normalizedColumnName: 'TYPEOFLONGTERMINCENTIVE1SOSARRSPSPU',
+            xlsxDisplayColumnName: 'Type of Long-term Incentive - 1 (SO, SAR, RS, PS, PU)',
+            displayColumnName: 'Type of Long-term Incentive - 1',
+            dataAttributeName: 'TypeOfLongTermIncentives1',
+            expectedType: 'number'
         },
         {
-            normalizedColumnName: 'NUMBEROFSHARESOPTIONSGRANTED',
-            actualColumnName: 'Number of Shares / Options Granted',
+            normalizedColumnName: 'NUMBEROFSHARESOPTIONSGRANTED1',
+            xlsxDisplayColumnName: 'Number of Shares / Options Granted - 1',
             displayColumnName: 'Number of Shares / Options Granted - 1',
-            datAttributeName: 'numberOfSharesOptionsGranted1',
-            type: 'number'
+            dataAttributeName: 'numberOfSharesOptionsGranted1',
+            expectedType: 'number'
         },
         {
-            normalizedColumnName: 'GRANTDATE',
-            actualColumnName: 'Grant Date',
+            normalizedColumnName: 'GRANTDATE1',
+            xlsxDisplayColumnName: 'Grant Date - 1',
             displayColumnName: 'Grant Date - 1',
-            datAttributeName: 'grantedDate1',
-            type: 'number'
+            dataAttributeName: 'grantedDate1',
+            expectedType: 'number'
         },
         {
-            normalizedColumnName: 'GRANTPRICECURRENCY',
-            actualColumnName: 'Grant    Price Currency',
+            normalizedColumnName: 'GRANTPRICECURRENCY1',
+            xlsxDisplayColumnName: 'Grant    Price Currency - 1',
             displayColumnName: 'Grant Price Currency - 1',
-            datAttributeName: 'grantPriceCurrency1',
-            type: 'number'
+            dataAttributeName: 'grantPriceCurrency1',
+            expectedType: 'number'
         },
         {
-            normalizedColumnName: 'GRANTPRICE',
-            actualColumnName: 'Grant Price',
+            normalizedColumnName: 'GRANTPRICE1',
+            xlsxDisplayColumnName: 'Grant Price - 1',
             displayColumnName: 'Grant Price - 1',
-            datAttributeName: 'grantPrice1',
-            type: 'number'
+            dataAttributeName: 'grantPrice1',
+            expectedType: 'number'
         },
         {
-            normalizedColumnName: 'TYPEOFLONGTERMINCENTIVESOSARRSPSPU',
-            actualColumnName: 'Type of Long-term Incentive (SO, SAR, RS, PS, PU)',
+            normalizedColumnName: 'TYPEOFLONGTERMINCENTIVE2SOSARRSPSPU',
+            xlsxDisplayColumnName: 'Type of Long-term Incentive - 2 (SO, SAR, RS, PS, PU)',
             displayColumnName: 'Type of Long-term Incentive - 2',
-            datAttributeName: 'typeOfLongTermIncentives2',
-            type: 'number'
+            dataAttributeName: 'TypeOfLongTermIncentives2',
+            expectedType: 'number'
         },
         {
-            normalizedColumnName: 'NUMBEROFSHARESOPTIONSGRANTED',
-            actualColumnName: 'Number of Shares / Options Granted',
+            normalizedColumnName: 'NUMBEROFSHARESOPTIONSGRANTED2',
+            xlsxDisplayColumnName: 'Number of Shares / Options Granted - 2',
             displayColumnName: 'Number of Shares / Options Granted - 2',
-            datAttributeName: 'numberOfSharesOptionsGranted2',
-            type: 'number'
+            dataAttributeName: 'numberOfSharesOptionsGranted2',
+            expectedType: 'number'
         },
         {
-            normalizedColumnName: 'GRANTDATE',
-            actualColumnName: 'Grant Date',
+            normalizedColumnName: 'GRANTDATE2',
+            xlsxDisplayColumnName: 'Grant Date - 2',
             displayColumnName: 'Grant Date - 2',
-            datAttributeName: 'grantDate2',
-            type: 'number'
+            dataAttributeName: 'grantDate2',
+            expectedType: 'number'
         },
         {
-            normalizedColumnName: 'GRANTPRICECURRENCY',
-            actualColumnName: 'Grant    Price Currency',
+            normalizedColumnName: 'GRANTPRICECURRENCY2',
+            xlsxDisplayColumnName: 'Grant    Price Currency - 2',
             displayColumnName: 'Grant Price Currency - 2',
-            datAttributeName: 'grantPriceCurrency2',
-            type: 'number'
+            dataAttributeName: 'grantPriceCurrency2',
+            expectedType: 'number'
         },
         {
-            normalizedColumnName: 'GRANTPRICE',
-            actualColumnName: 'Grant Price',
+            normalizedColumnName: 'GRANTPRICE2',
+            xlsxDisplayColumnName: 'Grant Price - 2',
             displayColumnName: 'Grant Price - 2',
-            datAttributeName: 'grantPrice2',
-            type: 'number'
+            dataAttributeName: 'grantPrice2',
+            expectedType: 'number'
         },
         {
-            normalizedColumnName: 'TYPEOFLONGTERMINCENTIVESOSARRSPSPU',
-            actualColumnName: 'Type of Long-term Incentive (SO, SAR, RS, PS, PU)',
+            normalizedColumnName: 'TYPEOFLONGTERMINCENTIVE3SOSARRSPSPU',
+            xlsxDisplayColumnName: 'Type of Long-term Incentive - 3 (SO, SAR, RS, PS, PU)',
             displayColumnName: 'Type of Long-term Incentive - 3',
-            datAttributeName: 'typeOfLongTermIncentives3',
-            type: 'number'
+            dataAttributeName: 'TypeOfLongTermIncentives3',
+            expectedType: 'number'
         },
         {
-            normalizedColumnName: 'NUMBEROFSHARESOPTIONSGRANTED',
-            actualColumnName: 'Number of Shares / Options Granted',
+            normalizedColumnName: 'NUMBEROFSHARESOPTIONSGRANTED3',
+            xlsxDisplayColumnName: 'Number of Shares / Options Granted - 3',
             displayColumnName: 'Number of Shares / Options Granted - 3',
-            datAttributeName: 'numberOfSharesOptionsGranted3',
-            type: 'number'
+            dataAttributeName: 'numberOfSharesOptionsGranted3',
+            expectedType: 'number'
         },
         {
-            normalizedColumnName: 'GRANTDATE',
-            actualColumnName: 'Grant Date',
+            normalizedColumnName: 'GRANTDATE3',
+            xlsxDisplayColumnName: 'Grant Date - 3',
             displayColumnName: 'Grant Date - 3',
-            datAttributeName: 'grantedDate3',
-            type: 'number'
+            dataAttributeName: 'grantedDate3',
+            expectedType: 'number'
         },
         {
-            normalizedColumnName: 'GRANTPRICECURRENCY',
-            actualColumnName: 'Grant    Price Currency',
+            normalizedColumnName: 'GRANTPRICECURRENCY3',
+            xlsxDisplayColumnName: 'Grant    Price Currency - 3',
             displayColumnName: 'Grant Price Currency - 3',
-            datAttributeName: 'grantPriceCurrency3',
-            type: 'number'
+            dataAttributeName: 'grantPriceCurrency3',
+            expectedType: 'number'
         },
         {
-            normalizedColumnName: 'GRANTPRICE',
-            actualColumnName: 'Grant Price',
+            normalizedColumnName: 'GRANTPRICE3',
+            xlsxDisplayColumnName: 'Grant Price - 3',
             displayColumnName: 'Grant Price - 3',
-            datAttributeName: 'grantPrice3',
-            type: 'number'
+            dataAttributeName: 'grantPrice3',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'ALLOWANCESELIGIBILITYYN',
-            actualColumnName: 'AllowancesEligibility (Y/N)',
+            xlsxDisplayColumnName: 'AllowancesEligibility (Y/N)',
             displayColumnName: 'Allowances Eligibility',
-            datAttributeName: 'allowancesEligibility',
-            type: 'number'
+            dataAttributeName: 'allowancesEligibility',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'CARALLOWANCE',
-            actualColumnName: 'Car Allowance',
+            xlsxDisplayColumnName: 'Car Allowance',
             displayColumnName: 'Car Allowance',
-            datAttributeName: 'carAllowance',
-            type: 'number'
+            dataAttributeName: 'carAllowance',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'TRANSPORTATIONCOMMUTINGALLOWANCE',
-            actualColumnName: 'Transportation / Commuting Allowance',
+            xlsxDisplayColumnName: 'Transportation / Commuting Allowance',
             displayColumnName: 'Transportation / Commuting Allowance',
-            datAttributeName: 'transportationCommutingAllowance',
-            type: 'number'
+            dataAttributeName: 'transportationCommutingAllowance',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'REPRESENTATIONALLOWANCE',
-            actualColumnName: 'Representation Allowance',
+            xlsxDisplayColumnName: 'Representation Allowance',
             displayColumnName: 'Representation Allowance',
-            datAttributeName: 'representationAllowance',
-            type: 'number'
+            dataAttributeName: 'representationAllowance',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'HOUSINGALLOWANCE',
-            actualColumnName: 'Housing Allowance',
+            xlsxDisplayColumnName: 'Housing Allowance',
             displayColumnName: 'Housing Allowance',
-            datAttributeName: 'housingAlloance',
-            type: 'number'
+            dataAttributeName: 'housingAlloance',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'MEALALLOWANCE',
-            actualColumnName: 'Meal Allowance',
+            xlsxDisplayColumnName: 'Meal Allowance',
             displayColumnName: 'Meal Allowance',
-            datAttributeName: 'mealAllowance',
-            type: 'number'
+            dataAttributeName: 'mealAllowance',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'EMPLOYEEEDUCATIONALLOWANCE',
-            actualColumnName: 'Employee Education Allowance',
+            xlsxDisplayColumnName: 'Employee Education Allowance',
             displayColumnName: 'Employee Education Allowance',
-            datAttributeName: 'employeeEducationAllowance',
-            type: 'number'
+            dataAttributeName: 'employeeEducationAllowance',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'DEPENDENTEDUCATIONALLOWANCE',
-            actualColumnName: 'Dependent Education Allowance',
+            xlsxDisplayColumnName: 'Dependent Education Allowance',
             displayColumnName: 'Dependent Education Allowance',
-            datAttributeName: 'dependentEducationAllowance',
-            type: 'number'
+            dataAttributeName: 'dependentEducationAllowance',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'TELECOMMUNICATIONALLOWANCE',
-            actualColumnName: 'Telecommuni-cation Allowance',
+            xlsxDisplayColumnName: 'Telecommuni-cation Allowance',
             displayColumnName: 'Telecommunication Allowance',
-            datAttributeName: 'telecommunicationAllowance',
-            type: 'number'
+            dataAttributeName: 'telecommunicationAllowance',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'CLUBMEMBERSHIPALLOWANCE',
-            actualColumnName: 'Club Membership Allowance',
+            xlsxDisplayColumnName: 'Club Membership Allowance',
             displayColumnName: 'Club Membership Allowance',
-            datAttributeName: 'clubMembershipAllowance',
-            type: 'number'
+            dataAttributeName: 'clubMembershipAllowance',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'ALLOTHERALLOWANCE',
-            actualColumnName: 'All Other Allowance',
+            xlsxDisplayColumnName: 'All Other Allowance',
             displayColumnName: 'All Other Allowance',
-            datAttributeName: 'allOtherAllowance',
-            type: 'number'
+            dataAttributeName: 'allOtherAllowance',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'NAMEOFCCNLAPPLIEDITALYONLY',
-            actualColumnName: 'Name of CCNL Applied(Italy Only)',
+            xlsxDisplayColumnName: 'Name of CCNL Applied(Italy Only)',
             displayColumnName: 'Name of CCNL Applied (Italy Only)',
-            datAttributeName: 'nameOfCCNLAppliedItalyOnly',
-            type: 'number'
+            dataAttributeName: 'nameOfCCNLAppliedItalyOnly',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'EMPLOYEECATEGORYITALYONLY',
-            actualColumnName: 'Employee Category (Italy Only)',
+            xlsxDisplayColumnName: 'Employee Category (Italy Only)',
             displayColumnName: 'Employee Category (Italy Only)',
-            datAttributeName: 'employeeCategoryItalyOnly',
-            type: 'number'
+            dataAttributeName: 'employeeCategoryItalyOnly',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'RETIREMENTPREMIUM',
-            actualColumnName: 'Retirement Premium',
+            xlsxDisplayColumnName: 'Retirement Premium',
             displayColumnName: 'Retirement Premium',
-            datAttributeName: 'retirementPremium',
-            type: 'number'
+            dataAttributeName: 'retirementPremium',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'MANDATORYPROFITSHARINGPARTICIPATIONELIGIBILITYFRANCEPERUONLYYN',
-            actualColumnName: 'Mandatory Profit-Sharing Participation Eligibility (France / Peru Only)(Y/N)',
+            xlsxDisplayColumnName: 'Mandatory Profit-Sharing Participation Eligibility (France / Peru Only)(Y/N)',
             displayColumnName: 'Mandatory Profit-Sharing Participation Eligibility (France / Peru Only)',
-            datAttributeName: 'mandatoryProfitSharingParticipationEligibilityFrancePeruOnly',
-            type: 'number'
+            dataAttributeName: 'mandatoryProfitSharingParticipationEligibilityFrancePeruOnly',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'MANDATORYPROFITSHARINGPARTICIPATIONPAYMENTFRANCEPERUONLY',
-            actualColumnName: 'Mandatory Profit-Sharing Participation Payment(France / Peru Only)',
+            xlsxDisplayColumnName: 'Mandatory Profit-Sharing Participation Payment(France / Peru Only)',
             displayColumnName: 'Mandatory Profit-Sharing Participation Payment(France / Peru Only)',
-            datAttributeName: 'mandatoryProfitSharingParticipationPaymentFrancePeruOnly',
-            type: 'number'
+            dataAttributeName: 'mandatoryProfitSharingParticipationPaymentFrancePeruOnly',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'VOLUNTARYPROFITSHARINGINTRESSEMENTELIGIBILITYFRANCEONLYYN',
-            actualColumnName: 'Voluntary Profit-Sharing Intéressement Eligibility (France Only)(Y/N)',
+            xlsxDisplayColumnName: 'Voluntary Profit-Sharing Intéressement Eligibility (France Only)(Y/N)',
             displayColumnName: 'Voluntary Profit-Sharing Intéressement Eligibility (France Only)',
-            datAttributeName: 'voluntaryProfitSharingIntressementEligibilityFranceOnly',
-            type: 'number'
+            dataAttributeName: 'voluntaryProfitSharingIntressementEligibilityFranceOnly',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'VOLUNTARYPROFITSHARINGINTRESSEMENTPAYMENTFRANCEONLY',
-            actualColumnName: 'Voluntary Profit-Sharing Intéressement Payment(France Only)',
+            xlsxDisplayColumnName: 'Voluntary Profit-Sharing Intéressement Payment(France Only)',
             displayColumnName: 'Voluntary Profit-Sharing Intéressement Payment (France Only)',
-            datAttributeName: 'voluntaryProfitSharingIntressementPaymentFranceOnly',
-            type: 'number'
+            dataAttributeName: 'voluntaryProfitSharingIntressementPaymentFranceOnly',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'EXPATYN',
-            actualColumnName: 'Expat (Y/N)',
+            xlsxDisplayColumnName: 'Expat (Y/N)',
             displayColumnName: 'Expat',
-            datAttributeName: 'expat',
-            type: 'number'
+            dataAttributeName: 'expat',
+            expectedType: 'number'
         },
         {
             normalizedColumnName: 'NATIONALITY',
-            actualColumnName: 'Nationality',
+            xlsxDisplayColumnName: 'Nationality',
             displayColumnName: 'Nationality',
-            datAttributeName: 'nationality',
-            type: 'number'
+            dataAttributeName: 'nationality',
+            expectedType: 'number'
         }
     ];
 
@@ -506,12 +506,17 @@ app.service('XlsxProcService', ['$q', function ($q) {
                 return false;
             }
 
-            var header = getHeader(worksheet, datRange, headerRow);
+            var header = getHeader(worksheet, dataRange, headerRow);
+//            console.log('header', header);
 
+            var unidentifiedHeaderColumns = getUnidentifiedHeaderColumns(header);
+            if (unidentifiedHeaderColumns.length > 0) {
+                console.log('unidentifiedHeaderColumns', unidentifiedHeaderColumns);
+                def.reject({ unidentifiedHeaderColumns: unidentifiedHeaderColumns });
+                return false;
+            }
 //            var worksheetdata = getWorksheetData(worksheet, dataRange, headerRow);
 
-            console.log('dataRange', dataRange);
-            console.log('headerRow', headerRow);
             def.resolve({ headerRow: headerRow });
             return true;
 /*
@@ -550,14 +555,48 @@ app.service('XlsxProcService', ['$q', function ($q) {
         return def.promise;
     }
 
+    function getUnidentifiedHeaderColumns(header) {
+        var retVal = [];
+        header.forEach(function(column) {
+            if (!column.isIdentified) {
+                retVal.push(column);
+            }
+        });
+        return retVal;
+    }
+
+    function getHeader(worksheet, range, headerRow) {
+        var header = $.extend(true, [], DB_COLUMNS_METADATA);
+        var colRangeBegin = range.s.c;
+        var colRangeEnd   = range.e.c;
+
+        for (var col = colRangeBegin; col <= colRangeEnd; col++) {
+            var cell = getCellByRowCol(worksheet, headerRow, col);
+            var value = cell ? getCellValue(cell): null;
+            if (!value) {
+                continue;
+            }
+
+            var column = getIdentifiedColumn(value, header);
+            if (!column) {
+                continue;
+            }
+
+            column.isIdentified = true;
+            column.xlsxCell = cell;
+        }
+
+        return header;
+    }
+
     function getWorksheetData(worksheet, dataRange, headerRow) {
         var rowRangeBegin = headerRow + 1;
         var rowRangeEnd   = range.e.r;
         var colRangeBegin = range.s.c;
         var colRangeEnd   = range.e.c;
         
-        for (var row = rowRangeBegin; row < rowRangeEnd; row++) {
-            for (var col = colRangeBegin; col < colRangeEnd; col++) {
+        for (var row = rowRangeBegin; row <= rowRangeEnd; row++) {
+            for (var col = colRangeBegin; col <= colRangeEnd; col++) {
             }
         }        
     }
@@ -574,7 +613,7 @@ app.service('XlsxProcService', ['$q', function ($q) {
                 var cell = getCellByRowCol(worksheet, row, col);
                 var value = cell ? getCellValue(cell): null;
                 var type = cell ? getCellType(cell): null;
-                if (value && type && type === 's' && isColumnIdentified(value)) {
+                if (value && type && type === 's' && getIdentifiedColumn(value, DB_COLUMNS_METADATA)) {
                     numColsIdentified++;
                     if (getPctColsIdentified(numColsIdentified) >= PCT_COLS_TO_MATCH_FOR_HEADER) {
                         return row;
@@ -587,12 +626,14 @@ app.service('XlsxProcService', ['$q', function ($q) {
     }
 
     function getPctColsIdentified(numColsIdentified) {
-        return numColsIdentified / dbColumnsMetaData.length * 100;
+        return numColsIdentified / DB_COLUMNS_METADATA.length * 100;
     }
 
-    function isColumnIdentified(potentialColumnName) {
+    function getIdentifiedColumn(potentialColumnName, source) {
         var normalizedColumnName = getNormalizedColumnName(potentialColumnName);
-        return dbColumnsMetaData.find(function(columnMetaData) {
+//        console.log('normalizedColumnName', normalizedColumnName);
+
+        return source.find(function(columnMetaData) {
             return (columnMetaData.normalizedColumnName.substring(0, MAX_COL_LEN_TO_MATCH_FOR_HEADER) === normalizedColumnName.substring(0, MAX_COL_LEN_TO_MATCH_FOR_HEADER)) ? true: false;
         });
     }
