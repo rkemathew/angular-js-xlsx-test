@@ -1,0 +1,30 @@
+{
+  "column_names": [
+    "Country",
+    "Currency",
+    "Country Total\nRevenue / Turnover",
+    "Unit' s Industry Sector",
+    "Unit Total Number of Employees",
+    "Employee \nJob Title",
+    "Employee \nGrade / Band",
+    "Employee \nID                          (do not use employee's name or social security number due to international privacy law)",
+    "Manager Employee \nID                          (do not use manager's name or social security number due to international privacy law)",
+    "Reporting Level from CEO",
+    "Performance Ranking",
+    "Gender",
+    "Current Level/Job Start Date",
+    "Company Hire Date\n(Date started with company, not specific to role)",
+    "Full-time/Part-time Status",
+    "FTE percentage\n",
+    "Employee Work\nLocation / Zip/Postal Code",
+    "Job Family \/ \nSubfamily \nCode (not required if Ref. Job Code is provided in column M)",
+    "Reference \nLevel  (not required if Ref. Job Code is provided in Column M)",
+    "Reference \nJob \nCode",
+    "Hay Group Total \nPoints",
+    "Basic Payments",
+    "Fixed Payments",
+    "Long-term \nIncentive \nEligibility \n(Y/N)",
+    "Short-term \nVariable \nPayment \nEligibility \n(Y/N)",
+    "Actual \nAnnual \nShort-term \nVariable \nPayment"
+  ]
+}

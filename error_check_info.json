@@ -1,0 +1,16 @@
+{
+  "headcount":10,
+  "LTI_plan":true,
+  "STI_plan":true,
+  "STI_plan_payout":true,
+  "employee_grade_band":true,
+  "minimum_requirements": [
+    "country",
+    "currency",
+    "employee_job_title",
+    "employee_work_location",
+    "basic_payments",
+    "full_time_status",
+    "fte_percentage"
+  ] 
+}
